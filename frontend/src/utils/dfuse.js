@@ -1,5 +1,5 @@
 import { createDfuseClient } from '@dfuse/client';
-import { PRICE_FEED_CONTRACT } from 'utils/wallet';
+import { PRICE_FEED_CONTRACT } from 'contracts';
 
 const { REACT_APP_DFUSE_API_KEY } = process.env;
 
@@ -9,8 +9,6 @@ const client = createDfuseClient({
 });
 
 export async function trackTransaction(transactionId) {
-  await PRICE_FEED_CONTRACT.isReady();
-
   console.log('dfuse: tracking %s', transactionId);
 
   const streamEthTransfers = `subscription () {

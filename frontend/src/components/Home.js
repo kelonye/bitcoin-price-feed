@@ -31,8 +31,89 @@ function Component({
   completeUpdate,
   account,
   activateWallet,
+  networkName,
+  networkSupported,
+  updateWallet,
 }) {
   const classes = useStyles();
+
+  React.useEffect(() => {
+    // if (PRICE_FEED_CONTRACT.contract) {
+    // PRICE_FEED_CONTRACT.on('priceUpdated', function(err, result) {
+    //   if (err) {
+    //     return console.error(err);
+    //   }
+    //   store.dispatch(updateData({ price: parseInt(result.returnValues.count) }));
+    // });
+    // }
+
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => {
+        document.location.reload();
+      });
+
+      window.ethereum.on('accountsChanged', function(accounts) {
+        updateWallet({ account: accounts[0] });
+      });
+    }
+  }, [updateWallet]);
+
+  let pane;
+
+  if (!networkSupported) {
+    pane = (
+      <div className="flex flex--column flex--justify-center flex--align-center">
+        Unsuported network: {networkName}
+      </div>
+    );
+  } else if (!account) {
+    pane = (
+      <Button
+        variant="contained"
+        onClick={activateWallet}
+        disabled={!window.ethereum}
+        fullWidth
+        color="secondary"
+      >
+        CONNECT TO METAMASK
+      </Button>
+    );
+  } else {
+    pane = (
+      <React.Fragment>
+        <div className="flex flex--column flex--justify-center flex--align-center">
+          <Chip label={price} />
+          <div>Pending: {`${pending}`}</div>
+          <div>LastRequestId: {lastRequestId}</div>
+        </div>
+
+        <div
+          className={clsx(
+            classes.buttonsContainer,
+            'flex flex--justify-center'
+          )}
+        >
+          <Button
+            variant="contained"
+            onClick={requestUpdate}
+            fullWidth
+            color="secondary"
+          >
+            REQUEST UPDATE
+          </Button>
+          &nbsp;
+          <Button
+            variant="contained"
+            onClick={completeUpdate}
+            fullWidth
+            color="secondary"
+          >
+            COMPLETE UPDATE
+          </Button>
+        </div>
+      </React.Fragment>
+    );
+  }
 
   return (
     <div className={clsx('flex flex--justify-center', classes.container)}>
@@ -41,50 +122,7 @@ function Component({
           [classes.paperInactive]: isTrackingTransaction,
         })}
       >
-        {!account ? (
-          <Button
-            variant="contained"
-            onClick={activateWallet}
-            disabled={!window.ethereum}
-            fullWidth
-            color="secondary"
-          >
-            CONNECT TO METAMASK
-          </Button>
-        ) : (
-          <React.Fragment>
-            <div className="flex flex--column flex--justify-center flex--align-center">
-              <Chip label={price} />
-              <div>Pending: {`${pending}`}</div>
-              <div>LastRequestId: {lastRequestId}</div>
-            </div>
-
-            <div
-              className={clsx(
-                classes.buttonsContainer,
-                'flex flex--justify-center'
-              )}
-            >
-              <Button
-                variant="contained"
-                onClick={requestUpdate}
-                fullWidth
-                color="secondary"
-              >
-                REQUEST UPDATE
-              </Button>
-              &nbsp;
-              <Button
-                variant="contained"
-                onClick={completeUpdate}
-                fullWidth
-                color="secondary"
-              >
-                COMPLETE UPDATE
-              </Button>
-            </div>
-          </React.Fragment>
-        )}
+        {pane}
       </Paper>
 
       {!isTrackingTransaction ? null : (
@@ -97,10 +135,15 @@ function Component({
 }
 
 export default connect(
-  ({ data, wallet: { isTrackingTransaction, account } }) => ({
+  ({
+    data,
+    wallet: { isTrackingTransaction, account, networkName, networkSupported },
+  }) => ({
     ...data,
     isTrackingTransaction,
     account,
+    networkName,
+    networkSupported,
   }),
   mapDispatchToProps
 )(Component);

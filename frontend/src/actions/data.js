@@ -1,5 +1,6 @@
 import { ACTION_TYPE_UPDATE_DATA } from 'config';
-import { WEB3, PRICE_FEED_CONTRACT } from 'utils/wallet';
+import Web3 from 'web3';
+import { PRICE_FEED_CONTRACT } from 'contracts';
 import { trackTransaction } from './wallet';
 
 export function updateData(payload) {
@@ -15,7 +16,7 @@ export function requestUpdate() {
       await dispatch(
         trackTransaction(
           await PRICE_FEED_CONTRACT.write('requestUpdate', [], {
-            value: WEB3.utils.toWei('0.001', 'ether'),
+            value: Web3.utils.toWei('0.001', 'ether'),
           })
         )
       );
